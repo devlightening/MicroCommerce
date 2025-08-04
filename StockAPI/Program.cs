@@ -1,4 +1,5 @@
 using MassTransit;
+using Shared.Queues;
 using StockAPI.Consumers;
 using StockAPI.Services;
 
@@ -18,7 +19,7 @@ builder.Services.AddMassTransit(configurator =>
     configurator.UsingRabbitMq((context, _configurator) =>
     {
         _configurator.Host(builder.Configuration["RabbitMQ"]);
-        _configurator.ReceiveEndpoint("", e => e.ConfigureConsumer<OrderCreatedEventConsumer>(context));    
+        _configurator.ReceiveEndpoint(RabbitMQSettings.Stock_OrderCreatedQueue, e => e.ConfigureConsumer<OrderCreatedEventConsumer>(context));    
     });
 });
 

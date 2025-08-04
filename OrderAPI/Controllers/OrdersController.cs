@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderAPI.DTO;
 using OrderAPI.Models;
 using OrderAPI.Models.Entites;
 using OrderAPI.ViewModels;
@@ -25,21 +26,22 @@ namespace OrderAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder(CreateOrderViewModel createOrderViewModel)
         {
-            Order order = new Order { 
-                OrderId = Guid .NewGuid(),
+            Order order = new Order
+            {
+                OrderId = Guid.NewGuid(),
                 BuyerId = createOrderViewModel.BuyerId,
                 CreatedDate = DateTime.Now,
                 OrderStatu = Models.Enums.OrderStatus.Suspend
             };
 
-            order.OrderItems = createOrderViewModel.OrderItems.Select(oi=>new OrderItem
+            order.OrderItems = createOrderViewModel.OrderItems.Select(oi => new OrderItem
             {
                 Count = oi.Count,
                 Price = oi.Price,
                 ProductId = oi.ProductId,
             }).ToList();
 
-            order.TotalPrice=createOrderViewModel.OrderItems.Sum(oi => oi.Count * oi.Price);
+            order.TotalPrice = createOrderViewModel.OrderItems.Sum(oi => oi.Count * oi.Price);
 
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
@@ -50,38 +52,37 @@ namespace OrderAPI.Controllers
                 OrderId = order.OrderId,
                 OrderItems = order.OrderItems.Select(oi => new OrderItemMessage
                 {
-                    Count = oi.Count,                   
+                    Count = oi.Count,
                     ProductId = oi.ProductId
                 }).ToList()
             };
 
             await _publishEndPoint.Publish(orderCreatedEvent);
             return Ok();
-
         }
-
 
         [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
             var orders = await _context.Orders
-                                        .Include(o => o.OrderItems)
-                                        .ToListAsync();
+                                       .Include(o => o.OrderItems)
+                                       .ToListAsync();
 
             if (orders == null || !orders.Any())
             {
                 return NotFound("Hiç sipariş bulunamadı.");
             }
 
-            // Entity modellerini DTO'ya dönüştürme
-            var orderDtos = orders.Select(o => new Order
+            // DTO'lara dönüştürme işlemini burada yapıyoruz
+            // *** DİKKAT: Artık 'Order' ve 'OrderItem' yerine 'OrderDto' ve 'OrderItemDto' kullanılıyor. ***
+            var orderDtos = orders.Select(o => new OrderDto
             {
                 OrderId = o.OrderId,
                 BuyerId = o.BuyerId,
                 CreatedDate = o.CreatedDate,
                 OrderStatu = o.OrderStatu,
                 TotalPrice = o.TotalPrice,
-                OrderItems = o.OrderItems.Select(oi => new OrderItem
+                OrderItems = o.OrderItems.Select(oi => new OrderItemDto
                 {
                     ProductId = oi.ProductId,
                     Count = oi.Count,
@@ -91,9 +92,5 @@ namespace OrderAPI.Controllers
 
             return Ok(orderDtos);
         }
-
-
-
-
     }
 }
