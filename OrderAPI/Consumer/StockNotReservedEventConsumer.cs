@@ -1,25 +1,24 @@
 ﻿using MassTransit;
-using Microsoft.EntityFrameworkCore;
-using OrderAPI.Models;
 using OrderAPI.Models.Entites;
+using OrderAPI.Models;
 using Shared.Events;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace OrderAPI.Consumer
 {
-    public class PaymentCompletedEventConsumer : IConsumer<PaymentCompletedEvent>
+    public class StockNotReservedEventConsumer : IConsumer<StockNotReservedEvent>
     {
         readonly OrderAPIDbContext _orderAPIDbContext;
 
-        public PaymentCompletedEventConsumer(OrderAPIDbContext orderAPIDbContext)
+        public StockNotReservedEventConsumer(OrderAPIDbContext orderAPIDbContext)
         {
             _orderAPIDbContext = orderAPIDbContext;
         }
 
-        public async Task Consume(ConsumeContext<PaymentCompletedEvent> context)
+        public async Task Consume(ConsumeContext<StockNotReservedEvent> context)
         {
             Order order = await _orderAPIDbContext.Orders.FirstOrDefaultAsync(x => x.OrderId == context.Message.OrderId);
-            order.OrderStatu = Models.Enums.OrderStatus.Completed;
+            order.OrderStatu = Models.Enums.OrderStatus.Failed;
             await _orderAPIDbContext.SaveChangesAsync();
         }
     }

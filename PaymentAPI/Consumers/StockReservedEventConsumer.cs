@@ -22,13 +22,21 @@ namespace PaymentAPI.Consumers
                 //Ödemenin Başarıyla Tamamlanıldığı..
                 PaymentCompletedEvent paymentCompletedEvent = new()
                 {
-                   OrderId = context.Message.OrderId
+                    OrderId = context.Message.OrderId
                 };
+
+                 Console.WriteLine("Ödeme Başarılı Bir Şekilde Tamamlandı.");
 
             }
             else
             {
                 //Ödemede sıkıntı çıktığı durumda...
+                PaymentFailedEvent paymentFailedEvent = new()
+                {
+                    OrderId = context.Message.OrderId,
+                    Reason = "Ödeme işlemi başarısız oldu."
+                };
+                _publishEndpoint.Publish(paymentFailedEvent);
 
             }
 

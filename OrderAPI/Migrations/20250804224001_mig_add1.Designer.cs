@@ -12,8 +12,8 @@ using OrderAPI.Models;
 namespace OrderAPI.Migrations
 {
     [DbContext(typeof(OrderAPIDbContext))]
-    [Migration("20250804111217_mig_add_1")]
-    partial class mig_add_1
+    [Migration("20250804224001_mig_add1")]
+    partial class mig_add1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,8 +40,8 @@ namespace OrderAPI.Migrations
                     b.Property<int>("OrderStatu")
                         .HasColumnType("int");
 
-                    b.Property<long>("TotalPrice")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("OrderId");
 

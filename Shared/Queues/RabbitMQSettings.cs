@@ -10,7 +10,8 @@ namespace Shared.Queues
     {
         public const string Stock_OrderCreatedQueue = "Stock.OrderCreatedQueue";
         public const string Payment_StockReservedEventQueue = "Payment.StockReservedQueue";
-        public const string Order_PaymentCompletedEventQueue = " Order.PaymentCompletedQueue";
-
+        public const string Order_PaymentCompletedEventQueue = "Order.PaymentCompletedQueue";
+        public const string Order_StockNotReservedEventQueue = "Order.StockNotReservedQueue";
+        public const string Order_PaymentFailedEventQueue = "Order.PaymentFailedQueue";
     }
 }

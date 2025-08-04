@@ -13,11 +13,13 @@ namespace StockAPI.Consumers
 
         IMongoCollection<Stock> _stockCollection;
         readonly ISendEndpointProvider _sendEndpointProvider;
+        readonly IPublishEndpoint _publishEndpoint;
 
-        public OrderCreatedEventConsumer(MongoDBService mongoDBService, ISendEndpointProvider sendEndpointProvider = null)
+        public OrderCreatedEventConsumer(MongoDBService mongoDBService, ISendEndpointProvider sendEndpointProvider = null, IPublishEndpoint publishEndpoint = null)
         {
             _stockCollection = mongoDBService.GetCollection<Stock>();
             _sendEndpointProvider = sendEndpointProvider;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
@@ -49,12 +51,25 @@ namespace StockAPI.Consumers
 
                 ISendEndpoint sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.Payment_StockReservedEventQueue}"));
                 await sendEndpoint.Send(stockReservedEvent);
+
+                await Console.Out.WriteLineAsync("Stoklar Başarıyla Rezerv Edildi.");
             }
             else
             {
-                
+
 
                 //Siparişin tutarsız /geçersiz olduğuna dair işlemler..
+
+                StockNotReservedEvent stockNotReservedEvent = new()
+                {
+                    OrderId = context.Message.OrderId,
+                    BuyerId = context.Message.BuyerId,
+                    Message = ".."
+
+
+                };
+                await _publishEndpoint.Publish(stockNotReservedEvent);
+                await Console.Out.WriteLineAsync("Stoklar Rezerv Edilemedi.");
 
             }
         }
