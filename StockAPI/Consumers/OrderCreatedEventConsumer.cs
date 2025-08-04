@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Shared.Events;
 using Shared.Messages;
+using Shared.Queues;
 using StockAPI.Models.Entites;
 using StockAPI.Services;
 
@@ -11,10 +12,12 @@ namespace StockAPI.Consumers
     {
 
         IMongoCollection<Stock> _stockCollection;
+        readonly ISendEndpointProvider _sendEndpointProvider;
 
-        public OrderCreatedEventConsumer(MongoDBService mongoDBService)
+        public OrderCreatedEventConsumer(MongoDBService mongoDBService, ISendEndpointProvider sendEndpointProvider = null)
         {
             _stockCollection = mongoDBService.GetCollection<Stock>();
+            _sendEndpointProvider = sendEndpointProvider;
         }
 
         public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
@@ -37,12 +40,21 @@ namespace StockAPI.Consumers
                 }
 
                 //Payment eventleri..
+                StockReservedEvent stockReservedEvent = new()
+                {
+                    OrderId = context.Message.OrderId,
+                    BuyerId = context.Message.BuyerId,
+                    TotalPrrice =context.Message.TotalPrice
+                };
+
+                ISendEndpoint sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.Payment_StockReservedEventQueue}"));
+                await sendEndpoint.Send(stockReservedEvent);
             }
             else
             {
                 
 
-
+                //Siparişin tutarsız /geçersiz olduğuna dair işlemler..
 
             }
         }

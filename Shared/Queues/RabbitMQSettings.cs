@@ -9,5 +9,8 @@ namespace Shared.Queues
     static public class RabbitMQSettings
     {
         public const string Stock_OrderCreatedQueue = "Stock.OrderCreatedQueue";
+        public const string Payment_StockReservedEventQueue = "Payment.StockReservedQueue";
+        public const string Order_PaymentCompletedEventQueue = " Order.PaymentCompletedQueue";
+
     }
 }
