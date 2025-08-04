@@ -10,6 +10,8 @@ namespace StockAPI.Services
             MongoClient client = new(configuration.GetConnectionString("MongoDB"));
             _mongoDatabase = client.GetDatabase("StockAPIDb");
         }
+        public IMongoCollection<T> GetCollection<T>() =>_mongoDatabase.GetCollection<T>(typeof(T).Name.ToLowerInvariant());
+
 
     }
 }
