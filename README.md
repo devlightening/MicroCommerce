@@ -118,27 +118,26 @@ end
 
 ### Core Workflow: A Step-by-Step Journey 🚀
 
-1.  **Order API: The Command Center**
+#### 1\. Order API: The Command Center
 
-      * A client request initiates the workflow.
-      * `OrderAPI` first persists the order in its database with a **`Suspend`** status. This is a crucial step to ensure atomicity and a consistent state.
-      * It then emits an **`OrderCreatedEvent`** to RabbitMQ, decoupling the order creation from the downstream processes.
+A client request initiates the workflow. The `OrderAPI` first persists the order in its **MSSQL** database with a **`Suspend`** status. This is a crucial step to ensure atomicity and a consistent state. It then emits an **`OrderCreatedEvent`** to RabbitMQ, decoupling the order creation from the downstream processes.
 
-2.  **Stock API: The Inventory Guard**
+\<br\>
 
-      * The `StockAPI` consumes the `OrderCreatedEvent`.
-      * It performs a critical stock check and, if available, **reserves the items** by decrementing the count in its database.
-      * This action is followed by publishing a **`StockReservedEvent`**, serving as a green light for payment processing.
+#### 2\. Stock API: The Inventory Guard
 
-3.  **Payment API: The Financial Gateway**
+The `StockAPI` consumes the **`OrderCreatedEvent`**. It performs a critical stock check and, if available, reserves the items by decrementing the count in its **MongoDB** database. This action is followed by publishing a **`StockReservedEvent`**, serving as a green light for payment processing.
 
-      * The `PaymentAPI` consumes the **`StockReservedEvent`**.
-      * It processes the payment and, based on the outcome, publishes a **`PaymentCompletedEvent`** or **`PaymentFailedEvent`**. This decision-making step is central to the system's reliability.
+\<br\>
 
-4.  **Order API: The Finalizer**
+#### 3\. Payment API: The Financial Gateway
 
-      * Finally, the `OrderAPI` consumes the payment result events.
-      * If a **`PaymentCompletedEvent`** is received, it updates the order's status to **`Completed`**, finalizing the transaction.
-      * If a **`PaymentFailedEvent`** is received, it updates the status to **`Failed`** and can trigger **compensation logic**, such as releasing the reserved stock.
+The `PaymentAPI` consumes the **`StockReservedEvent`**. It processes the payment and, based on the outcome, publishes a **`PaymentCompletedEvent`** or **`PaymentFailedEvent`**. This decision-making step is central to the system's reliability.
+
+\<br\>
+
+#### 4\. Order API: The Finalizer
+
+Finally, the `OrderAPI` consumes the payment result events. If a **`PaymentCompletedEvent`** is received, it updates the order's status to **`Completed`**, finalizing the transaction. If a **`PaymentFailedEvent`** is received, it updates the status to **`Failed`** and can trigger compensation logic, such as releasing the reserved stock.
 
 This event-driven flow ensures that each service is highly focused and efficient, while the entire system remains responsive and resilient to failures in any single component.
