@@ -1,0 +1,68 @@
+### Scenario: Order Creation Flow
+
+
+
+In this scenario, three APIs (Order, Stock, Payment) and the messaging broker between them (RabbitMQ) play a role in the process from a user placing an order to its completion.
+
+
+
+#### 1. Order Initiation (`OrderAPI`)
+
+
+
+* **Client Request**: A user sends a request to `OrderAPI` to create a new order.
+
+* **Write to Database**: `OrderAPI` creates the order, sets its status to `Suspend`, and saves it to the database.
+
+* **Sending Message**: An `OrderCreatedEvent` message containing all the information about the order creation is published to the relevant queue (`Stock_OrderCreatedQueue`) in RabbitMQ.
+
+
+
+#### 2. Stock Control and Reservation (`StockAPI`)
+
+
+
+* **Receiving Message**: A consumer in `StockAPI` listens to the `Stock_OrderCreatedQueue` queue and receives the `OrderCreatedEvent` message.
+
+* **Stock Check**: The stock of the items in the order is checked.
+
+* **Sending Message**:
+
+* **If stock is sufficient**, `StockAPI` decrements the stock and sends the `StockReservedEvent` message to the `Payment_StockReservedEventQueue` queue in RabbitMQ to initiate the payment process.
+
+* **If stock is insufficient**, `StockAPI` sends a `StockNotReservedEvent` message to notify you that the order failed. (This part is not included in your code, but is expected by the scenario.)
+
+
+
+#### 3. Payment Process (`PaymentAPI`)
+
+
+
+* **Receive Message**: A consumer in `PaymentAPI` listens to the `Payment_StockReservedEventQueue` queue and receives the `StockReservedEvent` message.
+
+* **Make Payment**: Based on the information in this message (e.g., buyer ID, total price), the payment transaction is simulated or actually made.
+
+* **Send Message**:
+
+* **If the payment is successful**, `PaymentAPI` emits a `PaymentCompletedEvent` message to complete the process.
+
+* **If the payment fails**, the `PaymentAPI` emits a `PaymentFailedEvent` message to notify you that the order should be canceled.
+
+
+
+#### 4. Updating the Order Status (`OrderAPI`)
+
+
+
+* **Listening for Messages**: The `OrderAPI` listens for both `PaymentCompletedEvent` and `PaymentFailedEvent` messages.
+
+* **Status Update**:
+
+* Upon receiving the `PaymentCompletedEvent` message, the `OrderAPI` updates the status of the corresponding order in the database to `Completed`.
+
+* Upon receiving the `PaymentFailedEvent` message, the `OrderAPI` updates the status of the order to `Failed` and initiates any necessary compensation (for example, stock replenishment).
+
+
+
+This flow allows your APIs to communicate asynchronously and loosely coupled through RabbitMQ, rather than talking directly to each other.
+
