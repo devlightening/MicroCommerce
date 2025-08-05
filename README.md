@@ -10,64 +10,79 @@ The diagram below illustrates the event-driven communication between the service
 
 ```mermaid
 graph TD
-    %% Services
-    subgraph Services
-        OrderService["Order Service (OrderAPI)"]
-        StockService["Stock Service (StockAPI)"]
-        PaymentService["Payment Service (PaymentAPI)"]
+    %% Styling for the main box and global text
+    classDef mainBox fill:#f9f9f9,stroke:#000,stroke-width:3px;
+    classDef boldText font-weight:bold;
+
+    subgraph "E-Commerce Microservices Flow"
+        direction LR
+
+        %% Services
+        subgraph Services
+            OrderService["Order Service (OrderAPI)"]:::boldText
+            StockService["Stock Service (StockAPI)"]:::boldText
+            PaymentService["Payment Service (PaymentAPI)"]:::boldText
+        end
+
+        %% Databases
+        subgraph Databases
+            OrderDB[(Order Database)]
+            StockDB[(Stock Database)]
+            PaymentDB[(Payment Database)]
+        end
+
+        %% RabbitMQ Queues
+        subgraph RabbitMQ Queues
+            Queue1["Stock_OrderCreatedQueue"]
+            Queue2["Payment_StockReservedEventQueue"]
+            Queue3["Order_PaymentCompletedQueue"]
+            Queue4["Order_PaymentFailedQueue"]
+        end
+
+        %% Order Creation Flow
+        Client["Client Request"] -- "Create Order" --> OrderService
+        OrderService -- "Write to DB" --> OrderDB
+        OrderService -- "OrderCreatedEvent" --> Queue1
+
+        %% Stock Check Flow
+        Queue1 -- "Consume Event" --> StockService
+        StockService -- "Check Stock" --> StockDB
+        StockService -- "Stock Available" --> Queue2
+        StockService -- "Stock Not Available" --> Queue4
+
+        %% Payment Flow
+        Queue2 -- "Consume Event" --> PaymentService
+        PaymentService -- "Process Payment" --> PaymentDB
+        PaymentService -- "PaymentCompletedEvent" --> Queue3
+        PaymentService -- "PaymentFailedEvent" --> Queue4
+
+        %% Order Status Update Flow
+        Queue3 -- "Consume Event" --> OrderService
+        OrderService -- "Mark Order as Completed" --> OrderDB
+
+        Queue4 -- "Consume Event" --> OrderService
+        OrderService -- "Mark Order as Failed" --> OrderDB
+
+        %% Styling
+        linkStyle default stroke-width:3px,fill:none,stroke:#555;
+        class OrderService,StockService,PaymentService boldText;
+
+        style Services fill:#fff,stroke:#000,stroke-width:2px;
+        style Databases fill:#fff,stroke:#000,stroke-width:2px;
+        style RabbitMQ_Queues fill:#fff,stroke:#000,stroke-width:2px;
+
+        style Client fill:#B0E0E6,stroke:#333,stroke-width:2px;
+        style OrderService fill:#87CEEB,stroke:#333,stroke-width:2px;
+        style StockService fill:#98FB98,stroke:#333,stroke-width:2px;
+        style PaymentService fill:#FFD700,stroke:#333,stroke-width:2px;
+        style OrderDB fill:#D3D3D3,stroke:#333,stroke-width:2px;
+        style StockDB fill:#D3D3D3,stroke:#333,stroke-width:2px;
+        style PaymentDB fill:#D3D3D3,stroke:#333,stroke-width:2px;
+        style Queue1 fill:#F08080,stroke:#333,stroke-width:2px;
+        style Queue2 fill:#F08080,stroke:#333,stroke-width:2px;
+        style Queue3 fill:#F08080,stroke:#333,stroke-width:2px;
+        style Queue4 fill:#F08080,stroke:#333,stroke-width:2px;
     end
-
-    %% Databases
-    subgraph Databases
-        OrderDB[(Order Database)]
-        StockDB[(Stock Database)]
-        PaymentDB[(Payment Database)]
-    end
-
-    %% RabbitMQ Queues
-    subgraph RabbitMQ Queues
-        Queue1["Stock_OrderCreatedQueue"]
-        Queue2["Payment_StockReservedEventQueue"]
-        Queue3["Order_PaymentCompletedQueue"]
-        Queue4["Order_PaymentFailedQueue"]
-    end
-
-    %% Order Creation Flow
-    Client["Client Request"] --> OrderService
-    OrderService -- "Create Order" --> OrderDB
-    OrderService -- "OrderCreatedEvent" --> Queue1
-
-    %% Stock Check Flow
-    Queue1 --> StockService
-    StockService -- "Check Stock" --> StockDB
-    StockService -- "Stock Available" --> Queue2
-    StockService -- "Stock Not Available" --> Queue4
-
-    %% Payment Flow
-    Queue2 --> PaymentService
-    PaymentService -- "Process Payment" --> PaymentDB
-    PaymentService -- "PaymentCompletedEvent" --> Queue3
-    PaymentService -- "PaymentFailedEvent" --> Queue4
-
-    %% Order Status Update Flow
-    Queue3 --> OrderService
-    OrderService -- "Mark Order as Completed" --> OrderDB
-
-    Queue4 --> OrderService
-    OrderService -- "Mark Order as Failed" --> OrderDB
-
-    %% Styling
-    style Client fill:#B0E0E6,stroke:#333,stroke-width:2px
-    style OrderService fill:#87CEEB,stroke:#333,stroke-width:2px
-    style StockService fill:#98FB98,stroke:#333,stroke-width:2px
-    style PaymentService fill:#FFD700,stroke:#333,stroke-width:2px
-    style OrderDB fill:#D3D3D3,stroke:#333,stroke-width:2px
-    style StockDB fill:#D3D3D3,stroke:#333,stroke-width:2px
-    style PaymentDB fill:#D3D3D3,stroke:#333,stroke-width:2px
-    style Queue1 fill:#F08080,stroke:#333,stroke-width:2px
-    style Queue2 fill:#F08080,stroke:#333,stroke-width:2px
-    style Queue3 fill:#F08080,stroke:#333,stroke-width:2px
-    style Queue4 fill:#F08080,stroke:#333,stroke-width:2px
 ```
 
 
