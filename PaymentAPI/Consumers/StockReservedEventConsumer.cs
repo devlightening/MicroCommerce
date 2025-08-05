@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using Shared.Events;
+using System.Threading.Tasks;
 
 namespace PaymentAPI.Consumers
 {
@@ -12,38 +13,38 @@ namespace PaymentAPI.Consumers
             _publishEndpoint = publishEndpoint;
         }
 
-        public Task Consume(ConsumeContext<StockReservedEvent> context)
+        public async Task Consume(ConsumeContext<StockReservedEvent> context)
         {
+            // Ödeme işlemleri
+            // kayıtlı kredi kartları, TotalPrice, Kredi kartı bilgileri..
 
-            //Ödeme işlemleri 
-            //kayıtlı kredi kartları ,TotalPrice ,Kredi kartı bilgileri..
-            if (true)
+            if (true) // Ödemenin başarılı olduğu senaryo
             {
-                //Ödemenin Başarıyla Tamamlanıldığı..
+                // Ödemenin Başarıyla Tamamlanıldığı..
                 PaymentCompletedEvent paymentCompletedEvent = new()
                 {
                     OrderId = context.Message.OrderId
                 };
 
-                 Console.WriteLine("Ödeme Başarılı Bir Şekilde Tamamlandı.");
+                // Önemli: Mesajı yayımlama işlemi burada yapılmalı.
+                await _publishEndpoint.Publish(paymentCompletedEvent);
 
+                Console.WriteLine("Ödeme Başarılı Bir Şekilde Tamamlandı.");
             }
-            else
+            else // Ödemede sıkıntı çıktığı durum
             {
-                //Ödemede sıkıntı çıktığı durumda...
                 PaymentFailedEvent paymentFailedEvent = new()
                 {
                     OrderId = context.Message.OrderId,
                     Reason = "Ödeme işlemi başarısız oldu."
                 };
-                _publishEndpoint.Publish(paymentFailedEvent);
 
+                // Önemli: Bu mesaj zaten yayımlanıyordu.
+                await _publishEndpoint.Publish(paymentFailedEvent);
             }
 
-
-
-
-            return Task.CompletedTask;
+            // Consume metodu async olduğu için, Task.CompletedTask yerine return Task; kullanmak daha doğru olur.
+            // Bu zaten async/await ile halledildiği için ekstra bir dönüşe gerek kalmıyor, ancak best practice olarak dönüşü düzeltelim.
         }
     }
 }

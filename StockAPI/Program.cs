@@ -46,21 +46,27 @@ internal class Program
         app.Run();
 
 
-        // Seed data ekleme iþlemini ayrý bir async metot içine taþýyoruz
+
+
         async Task SeedData(IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.CreateScope();
             var mongoDBService = scope.ServiceProvider.GetRequiredService<MongoDBService>();
             var collection = mongoDBService.GetCollection<Stock>();
 
-            if (!collection.FindSync(Builders<Stock>.Filter.Empty).Any())
+            // Koleksiyonun boþ olup olmadýðýný kontrol edin
+            if (!collection.Find(Builders<Stock>.Filter.Empty).Any())
             {
-                // ... Mevcut seed data kodunuz
-                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid(), Count = 2000 });
-                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid(), Count = 1000 });
-                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid(), Count = 3000 });
-                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid(), Count = 800 });
-                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid(), Count = 500 });
+                Console.WriteLine("Seed data oluþturuluyor...");
+
+                // Guid.NewGuid().ToString() ile ProductId'leri string olarak ekleyin
+                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid().ToString(), Count = 2000 });
+                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid().ToString(), Count = 1000 });
+                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid().ToString(), Count = 3000 });
+                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid().ToString(), Count = 800 });
+                await collection.InsertOneAsync(new() { ProductId = Guid.NewGuid().ToString(), Count = 500 });
+
+                Console.WriteLine("Seed data baþarýyla eklendi.");
             }
         }
     }

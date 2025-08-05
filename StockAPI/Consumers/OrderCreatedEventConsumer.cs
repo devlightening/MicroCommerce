@@ -23,7 +23,7 @@ namespace StockAPI.Consumers
         }
 
         public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
-        {
+         {
             List<bool> stockResult = new();
             foreach (OrderItemMessage orderItem in context.Message.OrderItems)
             {
