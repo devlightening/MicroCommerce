@@ -10,72 +10,55 @@ The diagram below illustrates the event-driven communication between the service
 
 ```mermaid
 graph TD
-    %% Class Definitions
     classDef mainBox fill:#f9f9f9,stroke:#000,stroke-width:3px;
     classDef boldText font-weight:bold;
 
-    %% Main Grouping
     subgraph "E-Commerce Microservices Flow"
         direction LR
 
-        %% Services
         subgraph Services
             OrderService["Order Service (OrderAPI)"]:::boldText
             StockService["Stock Service (StockAPI)"]:::boldText
             PaymentService["Payment Service (PaymentAPI)"]:::boldText
         end
 
-        %% Databases
         subgraph Databases
             OrderDB[(Order Database)]
             StockDB[(Stock Database)]
             PaymentDB[(Payment Database)]
         end
 
-        %% RabbitMQ Queues
-        subgraph "RabbitMQ Queues"
+        subgraph Queues
             Queue1["Stock_OrderCreatedQueue"]
             Queue2["Payment_StockReservedEventQueue"]
             Queue3["Order_PaymentCompletedQueue"]
             Queue4["Order_PaymentFailedQueue"]
         end
 
-        %% Order Creation Flow
-        Client["Client Request"] -- "Create Order" --> OrderService
-        OrderService -- "Write to DB" --> OrderDB
-        OrderService -- "Publish OrderCreatedEvent" --> Queue1
+        Client["Client Request"] -->|Create Order| OrderService
+        OrderService -->|Write to DB| OrderDB
+        OrderService -->|Publish OrderCreatedEvent| Queue1
 
-        %% Stock Reservation Flow
-        Queue1 -- "Consume Event" --> StockService
-        StockService -- "Check Stock" --> StockDB
-        StockService -- "Publish StockReservedEvent" --> Queue2
-        StockService -- "Publish StockNotAvailableEvent" --> Queue4
+        Queue1 -->|Consume Event| StockService
+        StockService -->|Check Stock| StockDB
+        StockService -->|Publish StockReservedEvent| Queue2
+        StockService -->|Publish StockNotAvailableEvent| Queue4
 
-        %% Payment Processing Flow
-        Queue2 -- "Consume Event" --> PaymentService
-        PaymentService -- "Process Payment" --> PaymentDB
-        PaymentService -- "Publish PaymentCompletedEvent" --> Queue3
-        PaymentService -- "Publish PaymentFailedEvent" --> Queue4
+        Queue2 -->|Consume Event| PaymentService
+        PaymentService -->|Process Payment| PaymentDB
+        PaymentService -->|Publish PaymentCompletedEvent| Queue3
+        PaymentService -->|Publish PaymentFailedEvent| Queue4
 
-        %% Order Status Update Flow
-        Queue3 -- "Consume Event" --> OrderService
-        OrderService -- "Mark Order as Completed" --> OrderDB
+        Queue3 -->|Consume Event| OrderService
+        OrderService -->|Mark Order as Completed| OrderDB
 
-        Queue4 -- "Consume Event" --> OrderService
-        OrderService -- "Mark Order as Failed" --> OrderDB
+        Queue4 -->|Consume Event| OrderService
+        OrderService -->|Mark Order as Failed| OrderDB
 
-        %% Link Styles
-        linkStyle default stroke-width:2px,fill:none,stroke:#555;
+        %% Link Styling
+        linkStyle default stroke:#555, stroke-width:2px;
 
-        %% Class Assignments
-        class OrderService,StockService,PaymentService boldText;
-
-        %% Box Styles
-        style Services fill:#ffffff,stroke:#000,stroke-width:2px;
-        style Databases fill:#ffffff,stroke:#000,stroke-width:2px;
-        style RabbitMQ_Queues fill:#ffffff,stroke:#000,stroke-width:2px;
-
-        %% Node Styles
+        %% Node Styling
         style Client fill:#B0E0E6,stroke:#333,stroke-width:2px;
         style OrderService fill:#87CEEB,stroke:#333,stroke-width:2px;
         style StockService fill:#98FB98,stroke:#333,stroke-width:2px;
@@ -89,6 +72,7 @@ graph TD
         style Queue4 fill:#F08080,stroke:#333,stroke-width:2px;
     end
 ```
+
 
 
 
