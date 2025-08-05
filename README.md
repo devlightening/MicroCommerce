@@ -1,50 +1,49 @@
-```mermaid
 graph TD
-%% Servisleri Tanımla
-subgraph Servisler
-    OrderService["Order Service (OrderAPI)"]
-    StockService["Stock Service (StockAPI)"]
-    PaymentService["Payment Service (PaymentAPI)"]
-end
+    %% Servisleri Tanımla
+    subgraph Servisler
+        OrderService["Order Service (OrderAPI)"]
+        StockService["Stock Service (StockAPI)"]
+        PaymentService["Payment Service (PaymentAPI)"]
+    end
 
-%% Veritabanlarını Tanımla
-subgraph Veritabanları
-    OrderDB[(Order Veritabanı)]
-    StockDB[(Stock Veritabanı)]
-    PaymentDB[(Ödeme Veritabanı)]
-end
+    %% Veritabanlarını Tanımla
+    subgraph Veritabanları
+        OrderDB[(Order Veritabanı)]
+        StockDB[(Stock Veritabanı)]
+        PaymentDB[(Ödeme Veritabanı)]
+    end
 
-%% Kuyrukları Tanımla
-subgraph RabbitMQ Kuyrukları
-    Queue1["Stock_OrderCreatedQueue"]
-    Queue2["Payment_StockReservedEventQueue"]
-    Queue3["Order_PaymentCompletedQueue"]
-    Queue4["Order_PaymentFailedQueue"]
-end
+    %% Kuyrukları Tanımla
+    subgraph RabbitMQ Kuyrukları
+        Queue1["Stock_OrderCreatedQueue"]
+        Queue2["Payment_StockReservedEventQueue"]
+        Queue3["Order_PaymentCompletedQueue"]
+        Queue4["Order_PaymentFailedQueue"]
+    end
 
-%% Akış - Sipariş Oluşturma
-Client["İstemci İsteği"] --> OrderService
-OrderService -- "Sipariş Oluştur" --> OrderDB
-OrderService -- "OrderCreatedEvent" --> Queue1
+    %% Akış - Sipariş Oluşturma
+    Client["İstemci İsteği"] --> OrderService
+    OrderService -- "Sipariş Oluştur" --> OrderDB
+    OrderService -- "OrderCreatedEvent" --> Queue1
 
-%% Akış - Stok Kontrolü
-Queue1 --> StockService
-StockService -- "Stok Kontrolü" --> StockDB
-StockService -- "Stok Yeterli" --> Queue2
-StockService -- "Stok Yetersiz" --> Queue4
+    %% Akış - Stok Kontrolü
+    Queue1 --> StockService
+    StockService -- "Stok Kontrolü" --> StockDB
+    StockService -- "Stok Yeterli" --> Queue2
+    StockService -- "Stok Yetersiz" --> Queue4
 
-%% Akış - Ödeme
-Queue2 --> PaymentService
-PaymentService -- "Ödeme İşle" --> PaymentDB
-PaymentService -- "PaymentCompletedEvent" --> Queue3
-PaymentService -- "PaymentFailedEvent" --> Queue4
+    %% Akış - Ödeme
+    Queue2 --> PaymentService
+    PaymentService -- "Ödeme İşle" --> PaymentDB
+    PaymentService -- "PaymentCompletedEvent" --> Queue3
+    PaymentService -- "PaymentFailedEvent" --> Queue4
 
-%% Akış - Sipariş Durumu Güncelleme
-Queue3 --> OrderService
-OrderService -- "Siparişi Tamamlandı Olarak Güncelle" --> OrderDB
+    %% Akış - Sipariş Durumu Güncelleme
+    Queue3 --> OrderService
+    OrderService -- "Siparişi Tamamlandı Olarak Güncelle" --> OrderDB
 
-Queue4 --> OrderService
-OrderService -- "Siparişi Başarısız Olarak Güncelle" --> OrderDB
+    Queue4 --> OrderService
+    OrderService -- "Siparişi Başarısız Olarak Güncelle" --> OrderDB
 
     %% Renklendirme
     style Client fill:#B0E0E6,stroke:#333,stroke-width:2px
@@ -58,16 +57,6 @@ OrderService -- "Siparişi Başarısız Olarak Güncelle" --> OrderDB
     style Queue2 fill:#F08080,stroke:#333,stroke-width:2px
     style Queue3 fill:#F08080,stroke:#333,stroke-width:2px
     style Queue4 fill:#F08080,stroke:#333,stroke-width:2px
-
-
-
-
-
-
-
-
-
-
 
 
 
