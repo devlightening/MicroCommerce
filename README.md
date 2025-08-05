@@ -10,64 +10,32 @@ The diagram below illustrates the event-driven communication between the service
 
 ```mermaid
 graph TD
-    %% Servisleri Tanımla
-    subgraph Servisler
-        OrderService["Order Service (OrderAPI)"]
-        StockService["Stock Service (StockAPI)"]
-        PaymentService["Payment Service (PaymentAPI)"]
-    end
+    ClientRequest[Client sends request]
+    APIGateway[API Gateway receives request]
+    AuthService[Auth Service verifies user]
+    UserDB[User Database]
+    ProductService[Product Service processes data]
+    ProductDB[Product Database]
+    Response[Client receives response]
 
-    %% Veritabanlarını Tanımla
-    subgraph Veritabanları
-        OrderDB[(Order Veritabanı)]
-        StockDB[(Stock Veritabanı)]
-        PaymentDB[(Ödeme Veritabanı)]
-    end
+    ClientRequest --> APIGateway
+    APIGateway --> AuthService
+    AuthService --> UserDB
+    AuthService --> APIGateway
+    APIGateway --> ProductService
+    ProductService --> ProductDB
+    ProductService --> APIGateway
+    APIGateway --> Response
 
-    %% Kuyrukları Tanımla
-    subgraph RabbitMQ Kuyrukları
-        Queue1["Stock_OrderCreatedQueue"]
-        Queue2["Payment_StockReservedEventQueue"]
-        Queue3["Order_PaymentCompletedQueue"]
-        Queue4["Order_PaymentFailedQueue"]
-    end
+    style ClientRequest fill:#f9f,stroke:#333,stroke-width:2px
+    style APIGateway fill:#bbf,stroke:#333,stroke-width:2px
+    style AuthService fill:#bfb,stroke:#333,stroke-width:2px
+    style UserDB fill:#ffc,stroke:#333,stroke-width:2px
+    style ProductService fill:#fbf,stroke:#333,stroke-width:2px
+    style ProductDB fill:#fcf,stroke:#333,stroke-width:2px
+    style Response fill:#cff,stroke:#333,stroke-width:2px
+```
 
-    %% Akış - Sipariş Oluşturma
-    Client["İstemci İsteği"] --> OrderService
-    OrderService -- "Sipariş Oluştur" --> OrderDB
-    OrderService -- "OrderCreatedEvent" --> Queue1
-
-    %% Akış - Stok Kontrolü
-    Queue1 --> StockService
-    StockService -- "Stok Kontrolü" --> StockDB
-    StockService -- "Stok Yeterli" --> Queue2
-    StockService -- "Stok Yetersiz" --> Queue4
-
-    %% Akış - Ödeme
-    Queue2 --> PaymentService
-    PaymentService -- "Ödeme İşle" --> PaymentDB
-    PaymentService -- "PaymentCompletedEvent" --> Queue3
-    PaymentService -- "PaymentFailedEvent" --> Queue4
-
-    %% Akış - Sipariş Durumu Güncelleme
-    Queue3 --> OrderService
-    OrderService -- "Siparişi Tamamlandı Olarak Güncelle" --> OrderDB
-
-    Queue4 --> OrderService
-    OrderService -- "Siparişi Başarısız Olarak Güncelle" --> OrderDB
-
-    %% Renklendirme
-    style Client fill:#B0E0E6,stroke:#333,stroke-width:2px
-    style OrderService fill:#87CEEB,stroke:#333,stroke-width:2px
-    style StockService fill:#98FB98,stroke:#333,stroke-width:2px
-    style PaymentService fill:#FFD700,stroke:#333,stroke-width:2px
-    style OrderDB fill:#D3D3D3,stroke:#333,stroke-width:2px
-    style StockDB fill:#D3D3D3,stroke:#333,stroke-width:2px
-    style PaymentDB fill:#D3D3D3,stroke:#333,stroke-width:2px
-    style Queue1 fill:#F08080,stroke:#333,stroke-width:2px
-    style Queue2 fill:#F08080,stroke:#333,stroke-width:2px
-    style Queue3 fill:#F08080,stroke:#333,stroke-width:2px
-    style Queue4 fill:#F08080,stroke:#333,stroke-width:2px
 
 
 
