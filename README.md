@@ -1,3 +1,14 @@
+# Microservices E-commerce Order Flow
+
+This project demonstrates a microservices architecture for an e-commerce order system, leveraging **RabbitMQ** as a message broker for asynchronous communication. The solution consists of three distinct APIs: `OrderAPI`, `StockAPI`, and `PaymentAPI`, which communicate indirectly through a series of events. This design ensures that services are **loosely coupled**, allowing for greater scalability and resilience.
+
+---
+
+### Architecture and Message Flow
+
+The diagram below illustrates the event-driven communication between the services during an order creation process.
+
+```mermaid
 graph TD
     %% Servisleri Tanımla
     subgraph Servisler
@@ -57,12 +68,6 @@ graph TD
     style Queue2 fill:#F08080,stroke:#333,stroke-width:2px
     style Queue3 fill:#F08080,stroke:#333,stroke-width:2px
     style Queue4 fill:#F08080,stroke:#333,stroke-width:2px
-
-
-
-
-
-
 
 
 
