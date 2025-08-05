@@ -9,68 +9,111 @@ This project demonstrates a microservices architecture for an e-commerce order s
 The diagram below illustrates the event-driven communication between the services during an order creation process.
 
 ```mermaid
-graph TD
-    classDef mainBox fill:#f9f9f9,stroke:#000,stroke-width:3px;
-    classDef boldText font-weight:bold;
+%%{init: {"themeVariables": {"edgeLabelBackground":"#fff", "fontSize":"18px", "fontFamily":"Segoe UI, Arial, sans-serif", "curve":"cardinal"}}}%%
+graph LR
 
-    subgraph "E-Commerce Microservices Flow"
-        direction LR
+%% Service nodes
+OrderService["Order Service (OrderAPI)"]:::service
+StockService["Stock Service (StockAPI)"]:::stock
+PaymentService["Payment Service (PaymentAPI)"]:::payment
 
-        subgraph Services
-            OrderService["Order Service (OrderAPI)"]:::boldText
-            StockService["Stock Service (StockAPI)"]:::boldText
-            PaymentService["Payment Service (PaymentAPI)"]:::boldText
-        end
+%% Database nodes
+OrderDB(["Order Database"]):::db
+StockDB(["Stock Database"]):::db
+PaymentDB(["Payment Database"]):::db
 
-        subgraph Databases
-            OrderDB[(Order Database)]
-            StockDB[(Stock Database)]
-            PaymentDB[(Payment Database)]
-        end
+%% Queue nodes
+Queue1(["Stock Order Created Queue"]):::queue
+Queue2(["Payment Stock Reserved Event Queue"]):::queue
+Queue3(["Order Payment Completed Queue"]):::queue
+Queue4(["Order Payment Failed Queue"]):::queue
 
-        subgraph Queues
-            Queue1["Stock_OrderCreatedQueue"]
-            Queue2["Payment_StockReservedEventQueue"]
-            Queue3["Order_PaymentCompletedQueue"]
-            Queue4["Order_PaymentFailedQueue"]
-        end
+%% Client node
+Client["Client Request"]:::client
 
-        Client["Client Request"] -->|Create Order| OrderService
-        OrderService -->|Write to DB| OrderDB
-        OrderService -->|Publish OrderCreatedEvent| Queue1
+%% Flows (use thick lines for commands, dashed for events)
+Client ==> |"Create Order"| OrderService
 
-        Queue1 -->|Consume Event| StockService
-        StockService -->|Check Stock| StockDB
-        StockService -->|Publish StockReservedEvent| Queue2
-        StockService -->|Publish StockNotAvailableEvent| Queue4
+OrderService ==> |"Write to DB"| OrderDB
+OrderService -. "Publish Order Created Event" .-> Queue1
 
-        Queue2 -->|Consume Event| PaymentService
-        PaymentService -->|Process Payment| PaymentDB
-        PaymentService -->|Publish PaymentCompletedEvent| Queue3
-        PaymentService -->|Publish PaymentFailedEvent| Queue4
+Queue1 ==> |"Consume Event"| StockService
+StockService ==> |"Check Stock"| StockDB
+StockService -. "Publish Stock Reserved Event" .-> Queue2
+StockService -. "Publish Stock Not Available Event" .-> Queue4
 
-        Queue3 -->|Consume Event| OrderService
-        OrderService -->|Mark Order as Completed| OrderDB
+Queue2 ==> |"Consume Event"| PaymentService
+PaymentService ==> |"Process Payment"| PaymentDB
+PaymentService -. "Publish Payment Completed Event" .-> Queue3
+PaymentService -. "Publish Payment Failed Event" .-> Queue4
 
-        Queue4 -->|Consume Event| OrderService
-        OrderService -->|Mark Order as Failed| OrderDB
+Queue3 ==> |"Consume Event"| OrderService
+OrderService ==> |"Mark Order as Completed"| OrderDB
 
-        %% Link Styling
-        linkStyle default stroke:#555, stroke-width:2px;
+Queue4 ==> |"Consume Event"| OrderService
+OrderService ==> |"Mark Order as Failed"| OrderDB
 
-        %% Node Styling
-        style Client fill:#B0E0E6,stroke:#333,stroke-width:2px;
-        style OrderService fill:#87CEEB,stroke:#333,stroke-width:2px;
-        style StockService fill:#98FB98,stroke:#333,stroke-width:2px;
-        style PaymentService fill:#FFD700,stroke:#333,stroke-width:2px;
-        style OrderDB fill:#D3D3D3,stroke:#333,stroke-width:2px;
-        style StockDB fill:#D3D3D3,stroke:#333,stroke-width:2px;
-        style PaymentDB fill:#D3D3D3,stroke:#333,stroke-width:2px;
-        style Queue1 fill:#F08080,stroke:#333,stroke-width:2px;
-        style Queue2 fill:#F08080,stroke:#333,stroke-width:2px;
-        style Queue3 fill:#F08080,stroke:#333,stroke-width:2px;
-        style Queue4 fill:#F08080,stroke:#333,stroke-width:2px;
+%% Styling
+classDef client fill:#2632A0,stroke:#1B2156,stroke-width:3px,color:#fff,font-weight:bold;
+classDef service fill:#D1E9FF,stroke:#176CBE,stroke-width:3px,color:#042940,font-weight:bold;
+classDef stock fill:#B5E7A0,stroke:#52B788,stroke-width:3px,color:#15573F,font-weight:bold;
+classDef payment fill:#FFE28A,stroke:#B39200,stroke-width:3px,color:#665500,font-weight:bold;
+classDef db fill:#F6F7F9,stroke:#444D5C,stroke-width:2.5px,color:#111;
+classDef queue fill:#FF7A76,stroke:#B91616,stroke-width:2.5px,color:#fff,stroke-dasharray: 8 5;
+classDef eventLink stroke-dasharray: 6 4,stroke-width:3px;
+classDef thickLink stroke-width:4px,stroke:#0d47a1;
+classDef label font-weight:bold,font-size:18px;
+
+class OrderService service;
+class StockService stock;
+class PaymentService payment;
+class OrderDB,StockDB,PaymentDB db;
+class Queue1,Queue2,Queue3,Queue4 queue;
+class Client client;
+
+%% Edge styling for events (dashed)
+linkStyle 2,5,6,8,9 stroke:#757575,stroke-dasharray: 7 5,stroke-width:3px;
+%% link numbers are: 
+%% 0: Client==>OrderService
+%% 1: OrderService==>OrderDB
+%% 2: OrderService-.->Queue1    [event]
+%% 3: Queue1==>StockService
+%% 4: StockService==>StockDB
+%% 5: StockService-.->Queue2    [event]
+%% 6: StockService-.->Queue4    [event]
+%% 7: Queue2==>PaymentService
+%% 8: PaymentService-.->Queue3  [event]
+%% 9: PaymentService-.->Queue4  [event]
+%% 10: PaymentService==>PaymentDB
+%% 11: Queue3==>OrderService
+%% 12: OrderService==>OrderDB
+%% 13: Queue4==>OrderService
+%% 14: OrderService==>OrderDB
+
+%% Make main command/concrete action links even thicker
+linkStyle 0,1,3,4,7,10,11,12,13,14 stroke:#1976d2,stroke-width:4px;
+
+%% Subgraphs for group separation (visual purposes only, no inner direction override since edges cross subgraphs)
+subgraph "E-Commerce Microservices Flow"
+    direction LR
+    subgraph "Services"
+        OrderService
+        StockService
+        PaymentService
     end
+    subgraph "Databases"
+        OrderDB
+        StockDB
+        PaymentDB
+    end
+    subgraph "Queues"
+        Queue1
+        Queue2
+        Queue3
+        Queue4
+    end
+end
+
 ```
 
 
