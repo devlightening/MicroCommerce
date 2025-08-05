@@ -46,7 +46,18 @@ OrderService -- "Siparişi Tamamlandı Olarak Güncelle" --> OrderDB
 Queue4 --> OrderService
 OrderService -- "Siparişi Başarısız Olarak Güncelle" --> OrderDB
 
-
+    %% Renklendirme
+    style Client fill:#B0E0E6,stroke:#333,stroke-width:2px
+    style OrderService fill:#87CEEB,stroke:#333,stroke-width:2px
+    style StockService fill:#98FB98,stroke:#333,stroke-width:2px
+    style PaymentService fill:#FFD700,stroke:#333,stroke-width:2px
+    style OrderDB fill:#D3D3D3,stroke:#333,stroke-width:2px
+    style StockDB fill:#D3D3D3,stroke:#333,stroke-width:2px
+    style PaymentDB fill:#D3D3D3,stroke:#333,stroke-width:2px
+    style Queue1 fill:#F08080,stroke:#333,stroke-width:2px
+    style Queue2 fill:#F08080,stroke:#333,stroke-width:2px
+    style Queue3 fill:#F08080,stroke:#333,stroke-width:2px
+    style Queue4 fill:#F08080,stroke:#333,stroke-width:2px
 
 
 
