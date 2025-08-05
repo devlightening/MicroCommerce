@@ -10,10 +10,11 @@ The diagram below illustrates the event-driven communication between the service
 
 ```mermaid
 graph TD
-    %% Styling for the main box and global text
+    %% Class Definitions
     classDef mainBox fill:#f9f9f9,stroke:#000,stroke-width:3px;
     classDef boldText font-weight:bold;
 
+    %% Main Grouping
     subgraph "E-Commerce Microservices Flow"
         direction LR
 
@@ -32,7 +33,7 @@ graph TD
         end
 
         %% RabbitMQ Queues
-        subgraph RabbitMQ Queues
+        subgraph "RabbitMQ Queues"
             Queue1["Stock_OrderCreatedQueue"]
             Queue2["Payment_StockReservedEventQueue"]
             Queue3["Order_PaymentCompletedQueue"]
@@ -42,19 +43,19 @@ graph TD
         %% Order Creation Flow
         Client["Client Request"] -- "Create Order" --> OrderService
         OrderService -- "Write to DB" --> OrderDB
-        OrderService -- "OrderCreatedEvent" --> Queue1
+        OrderService -- "Publish OrderCreatedEvent" --> Queue1
 
-        %% Stock Check Flow
+        %% Stock Reservation Flow
         Queue1 -- "Consume Event" --> StockService
         StockService -- "Check Stock" --> StockDB
-        StockService -- "Stock Available" --> Queue2
-        StockService -- "Stock Not Available" --> Queue4
+        StockService -- "Publish StockReservedEvent" --> Queue2
+        StockService -- "Publish StockNotAvailableEvent" --> Queue4
 
-        %% Payment Flow
+        %% Payment Processing Flow
         Queue2 -- "Consume Event" --> PaymentService
         PaymentService -- "Process Payment" --> PaymentDB
-        PaymentService -- "PaymentCompletedEvent" --> Queue3
-        PaymentService -- "PaymentFailedEvent" --> Queue4
+        PaymentService -- "Publish PaymentCompletedEvent" --> Queue3
+        PaymentService -- "Publish PaymentFailedEvent" --> Queue4
 
         %% Order Status Update Flow
         Queue3 -- "Consume Event" --> OrderService
@@ -63,14 +64,18 @@ graph TD
         Queue4 -- "Consume Event" --> OrderService
         OrderService -- "Mark Order as Failed" --> OrderDB
 
-        %% Styling
-        linkStyle default stroke-width:3px,fill:none,stroke:#555;
+        %% Link Styles
+        linkStyle default stroke-width:2px,fill:none,stroke:#555;
+
+        %% Class Assignments
         class OrderService,StockService,PaymentService boldText;
 
-        style Services fill:#fff,stroke:#000,stroke-width:2px;
-        style Databases fill:#fff,stroke:#000,stroke-width:2px;
-        style RabbitMQ_Queues fill:#fff,stroke:#000,stroke-width:2px;
+        %% Box Styles
+        style Services fill:#ffffff,stroke:#000,stroke-width:2px;
+        style Databases fill:#ffffff,stroke:#000,stroke-width:2px;
+        style RabbitMQ_Queues fill:#ffffff,stroke:#000,stroke-width:2px;
 
+        %% Node Styles
         style Client fill:#B0E0E6,stroke:#333,stroke-width:2px;
         style OrderService fill:#87CEEB,stroke:#333,stroke-width:2px;
         style StockService fill:#98FB98,stroke:#333,stroke-width:2px;
